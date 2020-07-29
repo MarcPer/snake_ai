@@ -7,35 +7,46 @@ DEATH_PENALTY = -1
 SNAKE_GROWTH = 2
 
 class SnakeEnv(gym.Env):
-    GRID_SIZE = 40
     APPLE_GRID_VAL = 3
     HEAD_GRID_VAL = 2
     COLL_GRID_VAL = 1
 
-    def __init__(self, seed = None):
+    def __init__(self, grid_size=40, seed=None):
         if seed:
             np.random.seed(seed)
         self.curr_dir = None
+        self.grid_size = grid_size
         self.extend = 0
         self._reset_state()
         self.action_space = spaces.Discrete(3) # 0 do nothing, 1 turn left, 2 turn right
-        self.observation_space = spaces.Box(0, 3, (self.GRID_SIZE, self.GRID_SIZE, 1))
+        self.observation_space = spaces.Box(0, 3, (self.grid_size, self.grid_size, 1))
         self.reward_range = (-5, APPLE_REWARD + 1)
 
     def _reset_state(self):
         self.curr_dir = 'l'
         self.extend = 0
-        self.snake = list(map(lambda x: (21+x, 19), range(6)))
-        self.apple = self.spawnApple()
+        self.snake = self.build_snake()
+        self.apple = self.spawn_apple()
+
+    def build_snake(self):
+        """Returns a list of contiguous coordinates forming the snake, and
+        starting from the head. The snake size and position depends on the
+        size of the arena."""
+        length = max([self.grid_size // 6, 2])
+        head_posy = self.grid_size // 2 + 1
+        head_posx = self.grid_size // 2 - 1
+        return list(map(lambda y: (head_posy + y, head_posx), range(length)))
 
     def reset(self):
         self._reset_state()
         return self.normalize_state()
 
-    def spawnApple(self):
-        apple_pos = tuple(np.random.randint(self.GRID_SIZE, size=2))
+    def spawn_apple(self):
+        """Spawn apple in a random position, retrying if it happens
+        to fall on the snake."""
+        apple_pos = tuple(np.random.randint(self.grid_size, size=2))
         if self.collides(apple_pos, self.snake):
-            return self.spawnApple()
+            return self.spawn_apple()
         else:
             return apple_pos
 
@@ -59,7 +70,7 @@ class SnakeEnv(gym.Env):
         self.move()
         snake_head = self.snake[0]
 
-        if (snake_head[0] < 0) or (snake_head[0] >= self.GRID_SIZE) or (snake_head[1] < 0) or (snake_head[1] >= self.GRID_SIZE):
+        if (snake_head[0] < 0) or (snake_head[0] >= self.grid_size) or (snake_head[1] < 0) or (snake_head[1] >= self.grid_size):
             done = True
         elif self.collides(snake_head, self.snake[1:-1]):
             done = True
@@ -69,7 +80,7 @@ class SnakeEnv(gym.Env):
         elif self.collides(self.apple, self.snake[0:1]):
             reward += APPLE_REWARD
             self.extend += SNAKE_GROWTH
-            self.apple = self.spawnApple()   
+            self.apple = self.spawn_apple()
 
         observation = self.normalize_state()
         return observation, reward, done, {}
@@ -92,28 +103,28 @@ class SnakeEnv(gym.Env):
 
 
     def normalize_state(self):
-        out = np.zeros((self.GRID_SIZE, self.GRID_SIZE), dtype=np.uint8)
+        out = np.zeros((self.grid_size, self.grid_size), dtype=np.uint8)
         out[self.apple[0], self.apple[1]] = self.APPLE_GRID_VAL
 
         head_y, head_x = self.snake[0]
-        if head_x >= 0 and head_x < self.GRID_SIZE and head_y >= 0 and head_y < self.GRID_SIZE:
+        if head_x >= 0 and head_x < self.grid_size and head_y >= 0 and head_y < self.grid_size:
             out[head_y, head_x] = self.HEAD_GRID_VAL
 
         for (y, x) in self.snake[1:-1]:
             out[y, x] = self.COLL_GRID_VAL
-        return np.reshape(out, (self.GRID_SIZE, self.GRID_SIZE, 1))
+        return np.reshape(out, (self.grid_size, self.grid_size, 1))
 
     def render(self, mode='human'):
         norm_state = np.array(np.squeeze(self.normalize_state()))
-        full_grid = np.zeros((self.GRID_SIZE + 2, self.GRID_SIZE + 2))
+        full_grid = np.zeros((self.grid_size + 2, self.grid_size + 2))
 
         # Add val elements
         full_grid[0,:] = self.COLL_GRID_VAL
-        full_grid[self.GRID_SIZE+1,:] = self.COLL_GRID_VAL
+        full_grid[self.grid_size+1,:] = self.COLL_GRID_VAL
         full_grid[:,0] = self.COLL_GRID_VAL
-        full_grid[:,self.GRID_SIZE+1] = self.COLL_GRID_VAL
+        full_grid[:,self.grid_size+1] = self.COLL_GRID_VAL
 
-        full_grid[1:(self.GRID_SIZE+1), 1:(self.GRID_SIZE+1)] = norm_state
+        full_grid[1:(self.grid_size+1), 1:(self.grid_size+1)] = norm_state
 
         size_y, size_x = full_grid.shape
         for y in range(size_y):

@@ -8,7 +8,7 @@ class BaseRenderer:
     def types(self):
         return ["renderer"]
 
-    def render(self, _state, _score):
+    def render(self, _state, _score, _info):
         pass
 
     def set_caption(self, _caption):

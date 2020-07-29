@@ -6,6 +6,7 @@ import pygame as pg
 import argparse
 import importlib
 from enum import Enum
+from operator import itemgetter
 from plugins.snake_env import SnakeEnv
 from plugins.memory_playback import MemoryPlayback
 
@@ -64,14 +65,21 @@ class Game:
             if not self.plugins[plugin_type]:
                 self.plugins[plugin_type] = load_plugin([f'base_{plugin_type}'])
 
+    def reset(self):
+        return {
+                'game_over': False,
+                'dead': False,
+                'score': 0,
+                'action': 0, # Do nothing
+                'update_counter': self.update_every, # start counter ready to update
+                'state': self.env.reset()
+               }
+
     def run(self):
         """Start game.
         """
-        game_over = False
-        score = 0
-        action = 0 # Do nothing
-        update_counter = self.update_every # start counter ready to update
-        state = self.env.reset()
+        game_over, dead, score, action, update_counter, state = itemgetter(
+            'game_over', 'dead', 'score', 'action', 'update_counter', 'state')(self.reset())
         renderer = self.plugins['renderer']
         controller = self.plugins['controller']
         sound = self.plugins['sound']
@@ -79,20 +87,25 @@ class Game:
             CLOCK.tick(60)
             fps = CLOCK.get_fps()
             renderer.set_caption(f"{fps:.2f} fps")
-            renderer.render(state, score)
+            renderer.render(state, score, {'dead': dead})
 
             new_action = controller.get_action(state, self.env.curr_dir)
             action = new_action if new_action != 0 else action
             if action == 'QUIT':
                 game_over = True
                 continue
+            elif action == 'RESTART':
+                game_over, dead, score, action, update_counter, state = itemgetter(
+                    'game_over', 'dead', 'score', 'action', 'update_counter', 'state')(self.reset())
+                continue
+            if dead:
+                continue
             if update_counter >= self.update_every:
-                state, reward, done, _info = self.env.step(action)
+                state, reward, dead, _info = self.env.step(action)
                 score += reward
                 if reward > 0:
                     sound.play_eat()
-                self.plugins['aux'].run(state, reward, done, self.env.curr_dir, action)
-                game_over = game_over or done
+                self.plugins['aux'].run(state, reward, dead, self.env.curr_dir, action)
                 update_counter = 0
                 action = 0 # Do nothing
             else:
@@ -107,13 +120,14 @@ if __name__ == '__main__':
     parser.add_argument('--playback', action='store', metavar='FILENAME')
     parser.add_argument('--speed', type=int, default=100, help='Game update period in ms')
     parser.add_argument('--seed', type=int, help='Integer seed for environment RNG')
+    parser.add_argument('--grid_size', type=int, default=40, help='Size of a side in the square snake grid')
     parser.add_argument('--sound', choices=['on', 'off'], default='on')
     parser.add_argument('--record', metavar='FILENAME')
     args = parser.parse_args()
     if args.playback:
         arg_env = MemoryPlayback(args.playback)
     else:
-        arg_env = SnakeEnv(args.seed)
+        arg_env = SnakeEnv(grid_size=args.grid_size, seed=args.seed)
     pls = [
         [args.controller],
         ['pg_renderer', arg_env]
