@@ -24,6 +24,8 @@ class PgRenderer(BaseRenderer):
         self.grid_size = env.grid_size
         self.scale_factor = _TARGET_DISPLAY_SIZE // self.grid_size
         self.arena_size = env.grid_size * self.scale_factor
+        self.header = pg.Surface(size=(self.arena_size, _HEADER_SIZE), depth=8)
+        self.header_rect = self.header.get_rect(topleft=(0, 0))
         self.arena = pg.Surface(size=(self.arena_size, self.arena_size), depth=8)
         self.arena_rect = self.arena.get_rect(topleft=(0, _HEADER_SIZE))
         self.screen = pg.display \
@@ -46,8 +48,12 @@ class PgRenderer(BaseRenderer):
         self.screen.blit(self.arena, self.arena_rect)
 
         # Score
+        self.header.fill(_BLACK)
         text_surf, text_rect = create_text(f"Score: {score}", _FONT, _WHITE, (10, 10))
-        self.screen.blit(text_surf, text_rect)
+        self.header.blit(text_surf, text_rect)
+
+        # Blit header
+        self.screen.blit(self.header, self.header_rect)
 
         # Divider
         pg.draw.line(self.screen, _GRAY, (0, _HEADER_SIZE), (self.arena_size, _HEADER_SIZE))

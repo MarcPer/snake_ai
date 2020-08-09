@@ -17,7 +17,11 @@ class MemoryPlayback():
     def __init__(self, filename):
         self.memory = load_memory(filename)
         self.memory_len = len(self.memory)
+        if self.memory_len == 0:
+            raise SystemError("Nothing recorded in memory file {filename}")
         self.curr_dir = self.memory[0][3]
+        self.grid_size = np.array(self.memory[0][0]).shape[0]
+        print(self.grid_size)
         self.offset = 0
 
     def reset(self):

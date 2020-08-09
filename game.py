@@ -45,9 +45,6 @@ class Game:
     def __init__(self, env, speed, plugins):
         self.env = env
         self.update_every = round(speed/1000 * TARGET_FPS)
-        self.renderer = None
-        self.sound = None
-        self.controller = None
         self.plugins = PLUGINS_DICT
         self.load_plugins(env, plugins)
 
@@ -58,7 +55,6 @@ class Game:
             for plugin_type in PLUGINS_DICT.keys():
                 if plugin_type in pobj.types():
                     self.plugins[plugin_type] = pobj
-            print(f'Loaded plugin: {p[0]}')
 
         # Default to base plugins if none was set
         for plugin_type in PLUGINS_DICT.keys():
@@ -116,9 +112,9 @@ class Game:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Snake game')
-    parser.add_argument('--controller', action='store', default='user', help='Input handler')
+    parser.add_argument('--controller', action='store', nargs='+', default=['user'], help='Input handler. Default: user (keyboard controlled)')
     parser.add_argument('--playback', action='store', metavar='FILENAME')
-    parser.add_argument('--speed', type=int, default=100, help='Game update period in ms')
+    parser.add_argument('--speed', type=int, default=100, help='Game update period in ms. Default: 100')
     parser.add_argument('--seed', type=int, help='Integer seed for environment RNG')
     parser.add_argument('--grid_size', type=int, default=40, help='Size of a side in the square snake grid')
     parser.add_argument('--sound', choices=['on', 'off'], default='on')
@@ -129,7 +125,7 @@ if __name__ == '__main__':
     else:
         arg_env = SnakeEnv(grid_size=args.grid_size, seed=args.seed)
     pls = [
-        [args.controller],
+        [args.controller[0], args.controller[1:]],
         ['pg_renderer', arg_env]
     ]
     if args.sound == 'on':
