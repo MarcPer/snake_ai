@@ -5,8 +5,14 @@ import numpy as np
 
 def load_memory(filename):
     fullname = path.join('recordings', filename)
+    mem = []
     with open(fullname, 'rb') as f:
-        return pickle.load(f)
+        while True:
+            try:
+               mem.append(pickle.load(f))
+            except EOFError:
+                break
+    return mem
 
 class MemoryPlayback():
     GRID_SIZE = 40
@@ -21,7 +27,6 @@ class MemoryPlayback():
             raise SystemError("Nothing recorded in memory file {filename}")
         self.curr_dir = self.memory[0][3]
         self.grid_size = np.array(self.memory[0][0]).shape[0]
-        print(self.grid_size)
         self.offset = 0
 
     def reset(self):
