@@ -22,10 +22,13 @@ class BaseController:
                 elif event.key == pg.K_r:
                     return 'RESTART'
                 return self._process(event.key, state, curr_dir)
-        return 0
+        return self._computed_action(state, curr_dir)
 
     def types(self):
         return ['controller']
 
     def _process(self, _key, _state, _curr_dir):
+        return 0
+
+    def _computed_action(self, state, curr_dir):
         return 0

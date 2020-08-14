@@ -36,14 +36,14 @@ def call_if_exists(obj, method_name, args = []):
 
 PLUGINS_DICT = {
         'sound': None,
-        'controller': None,
         'renderer': None,
         'aux': None
         }
 
 class Game:
-    def __init__(self, env, speed, plugins):
+    def __init__(self, controller, env, speed, plugins):
         self.env = env
+        self.controller = controller
         self.update_every = round(speed/1000 * TARGET_FPS)
         self.plugins = PLUGINS_DICT
         self.load_plugins(env, plugins)
@@ -77,7 +77,7 @@ class Game:
         game_over, dead, score, action, update_counter, state = itemgetter(
             'game_over', 'dead', 'score', 'action', 'update_counter', 'state')(self.reset())
         renderer = self.plugins['renderer']
-        controller = self.plugins['controller']
+        controller = self.controller
         sound = self.plugins['sound']
         while not game_over:
             CLOCK.tick(60)
@@ -109,6 +109,21 @@ class Game:
         for p in self.plugins.values():
             call_if_exists(p, 'close')
 
+def load_controller(name, args):
+    if name == 'user':
+        from plugins.user import User
+        return User()
+    elif name.startswith('sb:'):
+        plugin_name = name.split(':')[1].lower()
+        if len(plugin_name) == 0:
+            raise SystemExit("No plugin name given, only 'sb:' namespace")
+        plugin_name += '_controller'
+        module = importlib.import_module(f'plugins.stable_baselines.{plugin_name}')
+        class_name = get_class_name(plugin_name)
+        pclass = getattr(module, class_name)
+        return pclass(*args)
+    from plugins.base_controller import BaseController
+    return BaseController()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Snake game')
@@ -120,18 +135,19 @@ if __name__ == '__main__':
     parser.add_argument('--sound', choices=['on', 'off'], default='on')
     parser.add_argument('--record', metavar='FILENAME')
     args = parser.parse_args()
+    controller = load_controller(args.controller[0], args.controller[1:])
     if args.playback:
         arg_env = MemoryPlayback(args.playback)
     else:
         arg_env = SnakeEnv(grid_size=args.grid_size, seed=args.seed)
     pls = [
-        [args.controller[0], args.controller[1:]],
         ['pg_renderer', arg_env]
     ]
     if args.sound == 'on':
         pls.append(['sound'])
     if args.record:
         pls.append(['memory_recorder', args.record])
-    game = Game(arg_env, args.speed, pls)
+    game = Game(controller, arg_env, args.speed, pls)
     game.run()
+
 
