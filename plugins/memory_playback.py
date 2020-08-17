@@ -34,6 +34,9 @@ class MemoryPlayback():
         self.curr_dir = self.memory[0][3]
         return self.memory[0][0]
 
+    def is_playback(self):
+        return True
+
     def step(self, _action):
         if self.offset >= self.memory_len - 1:
             state = self.memory[self.offset][0]

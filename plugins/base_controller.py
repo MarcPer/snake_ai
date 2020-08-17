@@ -19,6 +19,8 @@ class BaseController:
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     return 'QUIT'
+                elif event.key == pg.K_SPACE:
+                    return 'CONTINUE'
                 elif event.key == pg.K_r:
                     return 'RESTART'
                 return self._process(event.key, state, curr_dir)

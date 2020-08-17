@@ -14,6 +14,7 @@ _BLUE = (0, 0, 255)
 _GREEN = (0, 255, 0)
 _RED = (255, 0, 0)
 _WHITE = (255, 255, 255)
+_LIGHT_GRAY = (200, 200, 200)
 _GRAY = (50, 50, 50)
 _FONT = pg.font.Font(None, 26)
 _BIG_FONT_SIZE = 42
@@ -31,6 +32,7 @@ class PgRenderer(BaseRenderer):
         self.screen = pg.display \
                         .set_mode(size=(self.arena_size, self.arena_size + _HEADER_SIZE), depth=8)
         self.arena.set_palette([_BLACK, _BLUE, _GREEN, _RED, _WHITE, _GRAY])
+        self.blink_count = 0
 
     def set_caption(self, text):
         """Appends text to base caption."""
@@ -52,6 +54,16 @@ class PgRenderer(BaseRenderer):
         text_surf, text_rect = create_text(f"Score: {score}", _FONT, _WHITE, (10, 10))
         self.header.blit(text_surf, text_rect)
 
+        if info['is_playback']:
+            if self.blink_count < 30:
+                pb_surf, pb_rect = create_text(
+                    f"-- Playback --", _FONT, _LIGHT_GRAY,
+                    (self.header_rect.centerx, self.header_rect.bottom - 10), 'midbottom')
+                self.header.blit(pb_surf, pb_rect)
+            self.blink_count += 1
+            if self.blink_count >= 60:
+                self.blink_count = 0
+
         # Blit header
         self.screen.blit(self.header, self.header_rect)
 
@@ -65,8 +77,12 @@ class PgRenderer(BaseRenderer):
                 "Game Over", _BIG_FONT, _WHITE, (arena_center, arena_center + _HEADER_SIZE),
                 'center')
             self.screen.blit(go_surf, go_rect)
+            if info['is_playback']:
+                text = "Press 'Space' to continue or 'R' to restart"
+            else:
+                text = "Press 'R' to restart"
             go_surf, go_rect = create_text(
-                "Press 'R' to restart", _BIG_FONT, _WHITE,
+                text, _BIG_FONT, _WHITE,
                 (arena_center, arena_center + _HEADER_SIZE + _BIG_FONT_SIZE),
                 'center')
             self.screen.blit(go_surf, go_rect)
@@ -81,5 +97,7 @@ def create_text(text, font, color, pos, pos_mode='topleft'):
         text_rect = text_surf.get_rect(topleft=pos)
     elif pos_mode == 'center':
         text_rect = text_surf.get_rect(center=pos)
+    elif pos_mode == 'midbottom':
+        text_rect = text_surf.get_rect(midbottom=pos)
 
     return text_surf, text_rect

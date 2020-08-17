@@ -78,18 +78,21 @@ class Game:
             'game_over', 'dead', 'score', 'action', 'update_counter', 'state')(self.reset())
         renderer = self.plugins['renderer']
         controller = self.controller
+        is_playback = self.env.is_playback()
         sound = self.plugins['sound']
         while not game_over:
             CLOCK.tick(60)
             fps = CLOCK.get_fps()
             renderer.set_caption(f"{fps:.2f} fps")
-            renderer.render(state, score, {'dead': dead})
+            renderer.render(state, score, {'dead': dead, 'is_playback': is_playback})
 
             new_action = controller.get_action(state, self.env.curr_dir)
             action = new_action if new_action != 0 else action
             if action == 'QUIT':
                 game_over = True
                 continue
+            elif action == 'CONTINUE' and is_playback:
+                dead = False
             elif action == 'RESTART':
                 game_over, dead, score, action, update_counter, state = itemgetter(
                     'game_over', 'dead', 'score', 'action', 'update_counter', 'state')(self.reset())

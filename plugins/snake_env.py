@@ -24,6 +24,9 @@ class SnakeEnv(gym.Env):
         self.reward_range = (-5, APPLE_REWARD + 1)
         self.arena_length = self.grid_size * self.grid_size
 
+    def is_playback(self):
+        return False
+
     def _reset_state(self):
         self.curr_dir = 'l'
         self.extend = 0
