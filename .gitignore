@@ -1,6 +1,7 @@
 # Project-specific
 recordings/
 logs/
+models/
 
 # VIM
 *.swp
