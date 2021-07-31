@@ -84,7 +84,8 @@ class Game:
             CLOCK.tick(60)
             fps = CLOCK.get_fps()
             renderer.set_caption(f"{fps:.2f} fps")
-            renderer.render(state, score, {'dead': dead, 'is_playback': is_playback})
+            renderer.render(state, self.env, score,
+                            {'dead': dead, 'is_playback': is_playback})
 
             new_action = controller.get_action(state, self.env.curr_dir)
             action = new_action if new_action != 0 else action
@@ -132,6 +133,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Snake game')
     parser.add_argument('--controller', action='store', nargs='+', default=['user'], help='Input handler. To have a trained AI model play, use sb:ppo2 <model file path> (e.g. ./game.py --controller sb:ppo2 ppo2_model1). The trained model is expected to be in the models directory. The controller sb:ppo2 uses a plugin that wraps stable_baselines and uses the PPO2 algorithm. Default: user (keyboard controlled)')
     parser.add_argument('--playback', action='store', metavar='FILENAME')
+    parser.add_argument('--renderer', action='store', default='pg_renderer', metavar='RENDERER')
     parser.add_argument('--speed', type=int, default=100, help='Game update period in ms. Default: 100')
     parser.add_argument('--seed', type=int, help='Integer seed for environment RNG')
     parser.add_argument('--grid_size', type=int, default=40, help='Size of a side in the square snake grid')
@@ -144,7 +146,7 @@ if __name__ == '__main__':
     else:
         arg_env = SnakeEnv(grid_size=args.grid_size, seed=args.seed)
     pls = [
-        ['pg_renderer', arg_env]
+        [args.renderer, arg_env]
     ]
     if args.sound == 'on':
         pls.append(['sound'])
