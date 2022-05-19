@@ -2,10 +2,28 @@
 
 ## Getting started
 
-Install dependencies:
+The older Python version 3.6 is required. This can be managed with [Anaconda](https://docs.conda.io/en/latest/miniconda.html).
+
+Install python 3.6:
 ```bash
-python3 -m virtualenv env
-source env/bin/activate
+conda create -n py36 python=3.6.13
+conda activate py36
+```
+
+Install OS dependencies (Debian/Ubuntu):
+```bash
+sudo apt-get install \
+  libsdl1.2-dev \
+  libsdl-image1.2-dev \
+  libsdl-mixer1.2-dev \
+  libsdl-ttf2.0-dev \
+  libavformat-dev \
+  libportmidi-dev
+```
+
+
+Install Python-specific dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
@@ -14,7 +32,7 @@ Start game:
 ./game.py
 ```
 
-## game.py
+## Game options
 
 The main script takes options which change many aspects of the game. Use
 ```
@@ -48,4 +66,24 @@ This records the file *my_gameplay* in the *recordings/* directory. The recordin
 ```
 ./game.py --playback my_gameplay
 ```
+
+## Train AI model
+
+To train an AI model using PPO2 from [stable baselines](https://github.com/hill-a/stable-baselines), run
+
+```bash
+./train.py
+```
+
+This will train the AI on a 4x4 grid and save the result in the `models` directory. Running `train.py` repeateadly further trains the model, if there is one saved already in the `models` directory.
+
+
+To see the AI playing the game, start the game making sure the grid size is the same as what the model was trained for:
+```bash
+./game.py --controller sb:ppo2 ppo2_model1 --grid_size 4
+```
+
+## Recording gameplay
+
+The `game.py` script can record a gameplay with the `--record <filename>` option and replay it with `--playback <filename>`. Only the file name needs to be given, not a complete path - recordings are stored in the `recordings` directory. Note that the `--speed` option also affects the playback.
 
