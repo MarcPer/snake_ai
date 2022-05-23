@@ -133,7 +133,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Snake game')
     parser.add_argument('--controller', action='store', nargs='+', default=['user'], help='Input handler. To have a trained AI model play, use sb:ppo2 <model file path> (e.g. ./game.py --controller sb:ppo2 ppo2_model1). The trained model is expected to be in the models directory. The controller sb:ppo2 uses a plugin that wraps stable_baselines and uses the PPO2 algorithm. Default: user (keyboard controlled)')
     parser.add_argument('--playback', action='store', metavar='FILENAME')
-    parser.add_argument('--renderer', action='store', default='pg_renderer', metavar='RENDERER')
+    parser.add_argument('--renderer', action='store', default='pg_renderer', metavar='RENDERER', help='Render mode. Either pg_renderer or pg_sprite_renderer for sprite-based graphics. Default: pg_renderer')
     parser.add_argument('--speed', type=int, default=100, help='Game update period in ms. Default: 100')
     parser.add_argument('--seed', type=int, help='Integer seed for environment RNG')
     parser.add_argument('--grid_size', type=int, default=40, help='Size of a side in the square snake grid')

@@ -77,11 +77,20 @@ To train an AI model using PPO2 from [stable baselines](https://github.com/hill-
 
 This will train the AI on a 4x4 grid and save the result in the `models` directory. Running `train.py` repeateadly further trains the model, if there is one saved already in the `models` directory.
 
-
 To see the AI playing the game, start the game making sure the grid size is the same as what the model was trained for:
 ```bash
 ./game.py --controller sb:ppo2 ppo2_model1 --grid_size 4
 ```
+
+To train multiple models in parallel with different hyperparameters, use
+
+
+The reward and other metrics for each model can be seen in real time during training with tensorboard:
+```
+tensorboard --logdir logs/
+```
+
+This starts a server locally at http://127.0.0.1:6006/#scalars
 
 ## Recording gameplay
 

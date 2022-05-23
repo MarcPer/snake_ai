@@ -15,20 +15,21 @@ def train(model_payload):
     env = SnakeEnv(grid_size=4)
     model_name = model_payload['name']
     model_path = path.join('models', model_name)
+    learning_rate = model_payload['learning_rate']
     if path.isfile(model_path):
         env = DummyVecEnv([lambda: env])
-        model = PPO2.load('model_path', env=env, tensorboard_log=f'./logs/{model_name}')
+        model = PPO2.load('model_path', env=env, learning_rate=learning_rate, tensorboard_log=f'./logs/{model_name}')
     else:
-        model = PPO2(MlpPolicy, env=env, tensorboard_log=f'./logs/{model_name}')
+        model = PPO2(MlpPolicy, env=env, learning_rate=learning_rate, tensorboard_log=f'./logs/{model_name}')
 
     model.learn(total_timesteps=1000000)
     model.save(model_path)
     env.close()
 
-learning_rates = list(map(lambda x: 10**x * 0.00025, range(-2, 3)))
+learning_rates = list(map(lambda x: 10**x * 0.0005, range(-2, 1)))
 model_data = []
 for i, params in enumerate(learning_rates):
     model_data.append({'name': f'ppo2_model2_{i}', 'learning_rate': params})
 
-with Pool(5) as p:
+with Pool(3) as p:
     p.map(train, model_data)
