@@ -40,7 +40,7 @@ class PgRenderer(BaseRenderer):
             return
         pg.display.set_caption(f"{_BASE_CAPTION} - {text}")
 
-    def render(self, state, score, info):
+    def render(self, state, _env, score, info):
         """Read raw state and convert to pixel array. Each cell on the raw grid should
         be inflated by scale_factor, so it becomes a scale_factor x scale_factor pixel array.
         """
